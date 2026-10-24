@@ -36,3 +36,8 @@ node_modules/
 venv/
 .vscode/
 .idea/
+
+dist_test_v2/
+_verify_extract/
+releases/
+program.log
