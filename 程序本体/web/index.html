@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 量化交易系统</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">Q</div>
+        <div class="brand-text">
+          <h1>AI 量化交易系统</h1>
+          <span class="brand-sub">智能分析 · 自动交易</span>
+        </div>
+      </div>
+      <div id="indices" class="indices"></div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <button class="nav-btn active" data-page="ranking">🏆 推荐榜单</button>
+          <button class="nav-btn" data-page="watchlist">⭐ 我的自选</button>
+          <button class="nav-btn" data-page="query">🔍 智能查询</button>
+          <button class="nav-btn" data-page="portfolio">💼 我的持仓</button>
+          <button class="nav-btn" data-page="funds">📈 基金交易</button>
+          <button class="nav-btn" data-page="sector">🗂️ 热门板块</button>
+          <button class="nav-btn" data-page="global">🌐 全球市场</button>
+          <button class="nav-btn" data-page="infogap">📰 财报信息差</button>
+          <button class="nav-btn" data-page="realtime">📡 实时行情</button>
+          <button class="nav-btn" data-page="backtest">🧪 AI回测</button>
+          <button class="nav-btn" data-page="monitor">📺 盘中监控</button>
+          <button class="nav-btn" data-page="crawl">📥 数据抓取</button>
+          <button class="nav-btn" data-page="trading">🤖 全自动交易</button>
+          <button class="nav-btn" data-page="storage">📊 数据管理</button>
+          <button class="nav-btn" data-page="analysis">📈 走势分析</button>
+          <button class="nav-btn" data-page="db">🗄️ 数据库管理</button>
+          <button class="nav-btn" data-page="help">❓ 软件教学</button>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="dot" id="netDot"></span> 数据源：新浪
+          <button class="btn ghost sm" id="btnLegacy">打开旧版完整界面</button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <!-- 推荐榜单 -->
+        <section id="page-ranking" class="page active">
+          <div class="page-head">
+            <div>
+              <h2>🏆 推荐榜单</h2>
+              <p id="marketMode" class="muted">—</p>
+            </div>
+            <div class="head-right">
+              <label class="lbl">榜单数量
+                <select id="selRankLimit">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="30">30</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+              <button id="btnRankingRefresh" class="btn primary">🔄 刷新榜单</button>
+              <button id="btnRankPredict" class="btn ghost">🎯 用模型预测</button>
+             </div>
+          </div>
+          <div id="rankingProgress" class="progress-wrap hidden">
+            <div class="progress-track"><div id="rankingBar" class="progress-fill"></div></div>
+            <span id="rankingMsg" class="progress-msg"></span>
+          </div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-head"><h3>💼 按金额推荐</h3><span class="muted">独立功能，与上方榜单互不影响</span></div>
+            <div class="form" style="flex-direction:row; align-items:flex-end; gap:14px; flex-wrap:wrap">
+              <label class="field" style="flex:0 0 130px">
+                <span>买入总金额（元）</span>
+                <input id="rankBudget" type="number" value="100000">
+              </label>
+              <label class="field" style="flex:0 0 110px">
+                <span>选股风格</span>
+                <select id="budgetMode">
+                  <option value="mix" selected>🧠 综合判断</option>
+                  <option value="hot">🔥 追高·活跃</option>
+                  <option value="dip">🛟 抄底·超跌</option>
+                </select>
+              </label>
+              <button class="btn primary" id="btnAllocate">💰 按金额推荐</button>
+              <button class="btn ghost" id="btnRankImport">⬇️ 导入交易</button>
+              <p class="muted" style="margin:4px 0 0">输入你想投资的总金额，系统会列出全市场买得起的股票供你选择。金额太小的话也能看到最便宜的是什么价，方便你调整预算。追高选涨幅活跃股，抄底选当日跌下来的超跌股。</p>
+            </div>
+          </div>
+          <div id="allocResult" class="card hidden" style="margin-bottom:14px">
+            <div class="card-head"><h3>💼 推荐结果</h3><span id="allocSummary" class="muted"></span>
+              <button class="btn ghost" id="btnAllocAdd">⭐ 加入自选</button>
+              <button class="btn primary" id="btnAllocImport">✅ 一键导入交易</button>
+            </div>
+            <div class="table-wrap" style="max-height:280px">
+              <table id="allocTable" class="data-table">
+                <thead><tr><th><input type="checkbox" id="allocSelAll" data-selall="allocTable" onclick="toggleAll('allocTable', this)"></th><th>#</th><th>代码</th><th>名称</th><th>现价</th><th>涨跌幅</th><th>活跃分</th><th>买入金额</th><th>建议买入</th><th>占比</th></tr></thead>
+                <tbody><tr class="empty"><td colspan="9">填总金额，点「💰 按金额推荐」</td></tr></tbody>
+              </table>
+            </div>
+            <p class="muted" id="allocNote" style="margin-top:8px"></p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head">
+                <h3>⚡ 短线热门榜</h3>
+                <div class="btn-row">
+                  <button class="btn primary sm" id="btnShortImport">⬇️ 一键导入交易</button>
+                  <button class="btn ghost sm" id="btnShortAdd">⭐ 加入自选</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table id="shortTable" class="data-table">
+                  <thead><tr><th><input type="checkbox" id="shortSelAll" data-selall="shortTable" onclick="toggleAll('shortTable', this)"></th><th>#</th><th>代码</th><th>名称</th><th>最新价</th><th>今日涨幅</th><th>5日涨幅</th><th>短线分</th><th>操作</th></tr></thead>
+                  <tbody><tr class="empty"><td colspan="8">点击「刷新榜单」获取数据</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <h3>📈 长线优质榜</h3>
+                <div class="btn-row">
+                  <button class="btn primary sm" id="btnLongImport">⬇️ 一键导入交易</button>
+                  <button class="btn ghost sm" id="btnLongAdd">⭐ 加入自选</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table id="longTable" class="data-table">
+                  <thead><tr><th><input type="checkbox" id="longSelAll" data-selall="longTable" onclick="toggleAll('longTable', this)"></th><th>#</th><th>代码</th><th>名称</th><th>现价</th><th>今日涨跌</th><th>长期影响指数</th><th>级别</th><th>操作</th></tr></thead>
+                  <tbody><tr class="empty"><td colspan="8">点击「刷新榜单」获取数据</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 我的自选 -->
+        <section id="page-watchlist" class="page">
+          <div class="page-head">
+            <div><h2>⭐ 我的自选</h2><p class="muted">收藏自己关心的股票，随时看现价</p></div>
+            <div class="btn-row">
+              <button class="btn ghost" id="btnWatchAdd">➕ 添加</button>
+              <button class="btn primary" id="btnWatchRefresh">🔄 刷新行情</button>
+            </div>
+          </div>
+          <div id="watchMsg" class="toast hidden"></div>
+          <div class="card">
+            <div class="table-wrap">
+              <table id="watchTable" class="data-table">
+                <thead><tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌幅</th><th>涨跌额</th><th></th><th></th></tr></thead>
+                <tbody><tr class="empty"><td colspan="7">还没有自选股，去「推荐榜单」或上方添加</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="margin-top:18px">
+            <div class="card-head">
+              <h3>📈 K 线走势 <span id="watchKlineName" class="muted"></span></h3>
+            </div>
+            <div id="watchKlineBox" class="kline-box"><p class="muted">点击自选股行内「K线」按钮查看走势</p></div>
+            <p class="kline-hint muted"></p>
+           </div>
+        </section>
+
+        <!-- 智能查询 -->
+        <section id="page-query" class="page">
+          <div class="page-head">
+            <div><h2>🔍 智能查询</h2><p class="muted">输入股票名称 / 代码，一键查看行情与 AI 分析</p></div>
+          </div>
+          <div class="search-row">
+            <input id="queryInput" class="input" placeholder="例如：贵州茅台 或 600519" autocomplete="off">
+            <button class="btn primary" id="btnQuery">查询</button>
+          </div>
+          <div id="queryMsg" class="toast hidden"></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>💹 实时行情</h3></div>
+              <div class="table-wrap">
+                <table id="queryTable" class="data-table">
+                  <thead><tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌幅</th><th>今开</th><th>最高</th><th>最低</th><th>成交量</th></tr></thead>
+                  <tbody><tr class="empty"><td colspan="8">输入名称或代码后点查询</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>🤖 AI 综合分析</h3></div>
+              <div id="analysisBox" class="analysis-box">
+                <p class="muted">查询后展示技术面 + 基本面 + AI 预测综合评分</p>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:18px">
+            <div class="card-head">
+              <h3>📈 K 线走势 <span id="klineName" class="muted"></span></h3>
+              <label class="lbl">周期
+                <select id="selKlineDays" style="padding:6px 10px">
+                  <option value="60">60日</option>
+                  <option value="120">120日</option>
+                  <option value="160" selected>160日</option>
+                  <option value="250">250日</option>
+                </select>
+              </label>
+            </div>
+            <div id="klineBox" class="kline-box"><p class="muted">查询后自动绘制日 K 线与均线（红涨绿跌）</p></div>
+            <p class="kline-hint muted"></p>
+           </div>
+        </section>
+
+        <!-- 我的持仓 -->
+        <section id="page-portfolio" class="page">
+          <div class="page-head">
+            <div><h2>💼 我的持仓</h2><p class="muted">股票持仓 · 资金管理 · 交易记录</p></div>
+            <div class="btn-row">
+              <button class="btn ghost" id="btnPfRefresh">🔄 刷新现价</button>
+              <button class="btn danger" id="btnPfClear">🗑️ 清空持仓</button>
+            </div>
+          </div>
+          <div id="pfSummary" class="stat-row"></div>
+          <div class="grid-2" style="margin-top:14px">
+            <div class="card">
+              <div class="card-head"><h3>➕ 买入持仓</h3></div>
+              <div class="form">
+                <label class="field"><span>股票代码</span><input id="pfAddCode" placeholder="600519"></label>
+                <label class="field"><span>股票名称</span><input id="pfAddName" placeholder="贵州茅台"></label>
+                <label class="field"><span>数量（股）</span><input id="pfAddVol" type="number" value="100"></label>
+                <label class="field"><span>买入价（元）</span><input id="pfAddPrice" type="number" value="0"></label>
+                <button class="btn primary" id="btnPfAdd">买入</button>
+              </div>
+              <div class="card-head" style="margin-top:14px"><h3>➖ 卖出持仓</h3></div>
+              <div class="form">
+                <label class="field"><span>股票代码</span><input id="pfSellCode" placeholder="600519"></label>
+                <label class="field"><span>数量（股）</span><input id="pfSellVol" type="number" value="100"></label>
+                <label class="field"><span>卖出价（元）</span><input id="pfSellPrice" type="number" value="0"></label>
+                <button class="btn danger" id="btnPfSell">卖出</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>💰 资金管理</h3></div>
+              <div class="form">
+                <label class="field"><span>设置可用资金（元）</span><input id="pfCash" type="number" value="0"></label>
+                <button class="btn ghost" id="btnPfSetCash">设置资金</button>
+              </div>
+              <div class="form" style="margin-top:10px">
+                <label class="field"><span>存入 / 取出</span>
+                  <select id="frType"><option value="存入">存入</option><option value="取出">取出</option></select>
+                </label>
+                <label class="field"><span>金额（元）</span><input id="frAmount" type="number" value="0"></label>
+                <label class="field"><span>备注</span><input id="frNote" placeholder="可选"></label>
+                <button class="btn primary" id="btnFrAdd">记录资金流水</button>
+                <button class="btn ghost" id="btnFrClear">清空资金记录</button>
+              </div>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-top:14px">
+            <div class="card">
+              <div class="card-head"><h3>📋 持仓明细</h3></div>
+              <table class="data-table"><thead><tr>
+                <th>代码</th><th>名称</th><th>数量</th><th>成本</th><th>现价</th><th>市值</th><th>盈亏</th><th>盈亏%</th>
+              </tr></thead><tbody id="pfTable"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>🧾 交易记录 / 资金流水</h3></div>
+              <div id="pfHistory" class="log-box" style="max-height:320px"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 基金交易 -->
+        <section id="page-funds" class="page">
+          <div class="page-head">
+            <div><h2>📈 基金交易</h2><p class="muted">查询基金净值 · 买入 / 卖出 · 持仓跟踪</p></div>
+            <div class="btn-row">
+              <button class="btn ghost" id="btnFundNav">🔄 刷新净值</button>
+              <button class="btn danger" id="btnFundClear">🗑️ 清空持仓</button>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>🔎 查询 / 买入基金</h3></div>
+              <div class="form">
+                <label class="field"><span>基金代码</span><input id="fundCode" placeholder="510300 / 000001"></label>
+                <button class="btn ghost" id="btnFundLookup">查询</button>
+                <div id="fundInfo" class="muted" style="margin:8px 0"></div>
+                <label class="field"><span>买入份额</span><input id="fundVol" type="number" value="100"></label>
+                <label class="field"><span>买入净值</span><input id="fundNav" type="number" value="0" step="0.0001"></label>
+                <button class="btn primary" id="btnFundBuy">买入基金</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>📋 基金持仓</h3></div>
+              <table class="data-table"><thead><tr>
+                <th>代码</th><th>名称</th><th>份额</th><th>成本净值</th><th>现净值</th><th>市值</th><th>盈亏</th><th>操作</th>
+              </tr></thead><tbody id="fundTable"></tbody></table>
+              <div class="card-head" style="margin-top:12px"><h3>🧾 基金交易记录</h3></div>
+              <div id="fundHistory" class="log-box" style="max-height:200px"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 热门板块 -->
+        <section id="page-sector" class="page">
+          <div class="page-head">
+            <div><h2>🗂️ 热门板块</h2><p class="muted">概念 / 行业板块排行 · 成分股实时行情</p></div>
+            <div class="head-right">
+              <label class="lbl">类型
+                <select id="sectorKind">
+                  <option value="concept">概念板块</option>
+                  <option value="industry">行业板块</option>
+                </select>
+              </label>
+              <button id="btnSectorRefresh" class="btn primary">🔄 刷新板块</button>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>🔥 板块排行（点击查看成分股）</h3></div>
+              <div class="table-wrap" style="max-height:420px; overflow-y:auto">
+                <table id="sectorTable" class="data-table">
+                  <thead><tr><th>排名</th><th>板块名称</th><th>指数</th><th>涨跌%</th><th>涨/跌家数</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>🔎 成分股</h3></div>
+              <div class="form">
+                <label class="field"><span>搜索板块或直接输入名称</span><input id="sectorSearch" placeholder="如：人工智能 / 半导体"></label>
+                <button class="btn ghost" id="btnSectorSearch">查询板块</button>
+                <div id="sectorHit" class="muted"></div>
+              </div>
+              <div id="sectorName" class="muted" style="margin:10px 0"></div>
+              <div class="table-wrap" style="max-height:340px; overflow-y:auto">
+                <table id="sectorConsTable" class="data-table">
+                  <thead><tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌%</th><th>成交额</th><th>换手%</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+                <!-- 全球市场（港股/美股预留） -->
+        <section id="page-global" class="page">
+          <div class="page-head">
+            <div><h2>🌐 全球市场（港股 / 美股）</h2><p class="muted">预留接口 · 行情 / K线 / 财报 / 观察仓 · 开通账户后即可下单</p></div>
+            <div class="head-right">
+              <label class="lbl">市场
+                <select id="gsMarket">
+                  <option value="hk">港股</option>
+                  <option value="us">美股</option>
+                </select>
+              </label>
+              <button class="btn primary" id="btnGsRefresh">🔄 刷新行情</button>
+              <button class="btn ghost" id="btnGsStatus">账户状态</button>
+            </div>
+          </div>
+          <div id="gsMsg" class="toast hidden"></div>
+
+          <div class="card" style="margin-bottom:18px">
+            <div class="card-head"><h3>🏛️ 账户开通状态（预留）</h3></div>
+            <div id="gsStatusBox" class="muted">
+              <p>港股 / 美股证券账户尚未开通，当前为预留接口。</p>
+              <p>开通后在此切换"已开通"，即可使用观察仓、真实下单等能力。</p>
+              <div class="btn-row">
+                <button class="btn ghost sm" id="btnGsMarkOpened">标记为已开通</button>
+                <button class="btn ghost sm" id="btnGsMarkClosed">标记为未开通</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>📊 自选行情</h3></div>
+              <div class="form">
+                <label class="field"><span>代码 / 名称（逗号分隔）</span><input id="gsCodes" placeholder="如：00700, 09988 或 AAPL, TSLA"></label>
+                <button class="btn primary" id="btnGsQuery">查询</button>
+              </div>
+              <div class="table-wrap" style="max-height:300px; overflow-y:auto; margin-top:10px">
+                <table id="gsTable" class="data-table">
+                  <thead><tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌%</th><th>涨跌额</th><th></th></tr></thead>
+                  <tbody><tr class="empty"><td colspan="6">输入代码后点查询，或打开自选页自动刷新</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>🤖 AI 综合分析</h3></div>
+              <div id="gsAnalysisBox" class="analysis-box">
+                <p class="muted">查询后展示 技术面 + AI 预测 综合评分（与A股一致）</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>📈 K 线走势 <span id="gsKlineName" class="muted"></span></h3></div>
+            <div id="gsKlineBox" class="kline-box"><p class="muted">查询后自动绘制日 K 线与均线</p></div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>💼 观察仓（预留，开通前可记录）</h3></div>
+            <div class="form">
+              <label class="field"><span>代码</span><input id="gsPosCode" placeholder="00700 / AAPL"></label>
+              <label class="field"><span>名称</span><input id="gsPosName" placeholder="腾讯控股"></label>
+              <label class="field"><span>数量</span><input id="gsPosVol" type="number" value="100"></label>
+              <label class="field"><span>成本价</span><input id="gsPosPrice" type="number" value="0"></label>
+              <button class="btn primary" id="btnGsPosAdd">添加观察仓</button>
+            </div>
+            <div class="table-wrap" style="margin-top:10px">
+              <table id="gsPosTable" class="data-table">
+                <thead><tr><th>代码</th><th>名称</th><th>数量</th><th>成本价</th><th>币种</th><th></th></tr></thead>
+                <tbody id="gsPosBody"><tr class="empty"><td colspan="6">暂无观察仓</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 财报信息差 -->
+        <section id="page-infogap" class="page">
+          <div class="page-head">
+            <div><h2>📰 每日财报 · 信息差</h2><p class="muted">与「我的自选」和「热门板块」高度关联 · 聚合当日财报 / 重大公告 / 信息差评分</p></div>
+            <div class="head-right">
+              <label class="lbl">市场
+                <select id="igMarket">
+                  <option value="">全部</option>
+                  <option value="hk">仅港美股</option>
+                </select>
+              </label>
+              <button class="btn primary" id="btnIgRefresh">🔄 刷新信息差</button>
+              <button class="btn ghost" id="btnIgPush">生成并推送</button>
+            </div>
+          </div>
+          <div id="igMsg" class="toast hidden"></div>
+
+          <div class="card" style="margin-bottom:18px">
+            <div class="card-head"><h3>🔗 关联来源</h3></div>
+            <div id="igScope" class="muted">关联：我的自选（港美股） + 关注板块（热门板块页）</div>
+            <div class="form" style="margin-top:8px">
+              <label class="field"><span>关注板块名称（逗号分隔，可选）</span><input id="igSectors" placeholder="如：人工智能, 半导体, 新能源"></label>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>📅 财报日历（预留）</h3></div>
+              <div id="igEarningsBox" class="muted">
+                <p>财报日历数据源预留，开通账户后接入港交所披露易 / SEC EDGAR / Tushare。</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>📣 重大公告（信息差排序）</h3></div>
+              <div class="table-wrap" style="max-height:420px; overflow-y:auto">
+                <table id="igTable" class="data-table">
+                  <thead><tr><th>代码</th><th>市场</th><th>标题</th><th>优先级</th><th>评分</th></tr></thead>
+                  <tbody id="igBody"><tr class="empty"><td colspan="5">点"刷新信息差"生成</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+<!-- 实时行情 -->
+        <section id="page-realtime" class="page">
+          <div class="page-head">
+            <div><h2>📡 实时行情</h2><p class="muted">股票 / 基金 / 指数 / 板块 / 市场概览</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>🏛️ 市场概览</h3></div>
+              <div id="rtOverview" class="muted">加载中...</div>
+              <div class="card-head" style="margin-top:12px"><h3>📊 大盘指数</h3></div>
+              <div id="rtIndices" class="stat-row" style="margin-top:8px"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>🔎 批量查询行情</h3></div>
+              <div class="form">
+                <label class="field"><span>类型</span>
+                  <select id="rtType"><option value="stock">股票</option><option value="index">指数</option><option value="fund">基金</option></select>
+                </label>
+                <label class="field"><span>代码（逗号/空格分隔）</span><input id="rtCodes" placeholder="600519 000001 300750"></label>
+                <button class="btn primary" id="btnRtQuery">查询</button>
+                <button class="btn ghost" id="btnRtRefresh">🔄 刷新</button>
+              </div>
+              <div class="table-wrap" style="max-height:300px; overflow-y:auto; margin-top:10px">
+                <table id="rtTable" class="data-table">
+                  <thead><tr><th>代码</th><th>名称</th><th>现价</th><th>涨跌%</th><th>成交额</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI回测 -->
+        <section id="page-backtest" class="page">
+          <div class="page-head">
+            <div><h2>🧪 AI 回测</h2><p class="muted">8 种 AI 模型策略回测（区间过短会自动扩展保证训练）</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>⚙️ 回测设置</h3></div>
+              <div class="form">
+                <label class="field"><span>股票代码</span><input id="btCode" value="600519,600010,000426" placeholder="600519,600010"></label>
+                <div class="btn-row" style="margin-top:2px">
+                  <button class="btn ghost sm" id="btnBtImportWatch">📥 导入自选</button>
+                  <button class="btn ghost sm" id="btnBtImportPos">📥 导入持仓</button>
+                  <button class="btn ghost sm" id="btnBtImportAlloc">📥 导入金额推荐</button>
+                </div>
+                <label class="field"><span>开始日期</span><input id="btStart" type="date" value="2024-01-01"></label>
+                <label class="field"><span>结束日期</span><input id="btEnd" type="date" value="2025-12-31"></label>
+                <label class="field"><span>初始资金(元)</span><input id="btCapital" type="number" value="500000" min="100" step="100"></label>
+                <label class="field"><span>AI 模型</span><select id="btModel"></select></label>
+                <button class="btn primary" id="btnBtStart">▶️ 开始回测</button>
+              </div>
+              <div id="btProgress" class="progress-wrap hidden" style="margin-top:10px">
+                <div class="progress-track"><div id="btBar" class="progress-fill"></div></div>
+                <span id="btMsg" class="progress-msg"></span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>📊 回测结果</h3></div>
+              <div id="btResult" class="muted">运行回测后显示结果</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 盘中监控 -->
+        <section id="page-monitor" class="page">
+          <div class="page-head">
+            <div><h2>📺 盘中监控</h2><p class="muted">AI 盯盘：定时扫描给出买卖信号</p></div>
+            <div class="btn-row">
+              <button class="btn danger" id="btnMonStop">⏹️ 停止监控</button>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>⚙️ 监控设置</h3></div>
+              <div class="form">
+                <label class="field"><span>股票代码（逗号分隔）</span><input id="monCodes" value="600519,000001,300750"></label>
+                <label class="field"><span>AI 模型</span><select id="monModel"></select></label>
+                <label class="field"><span>刷新间隔（秒）</span><input id="monInterval" type="number" value="60"></label>
+                <button class="btn primary" id="btnMonStart">▶️ 开始监控</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>📡 监控状态</h3></div>
+              <div id="monStatus" class="muted">监控未启动</div>
+              <div class="table-wrap" style="max-height:260px; overflow-y:auto; margin-top:10px">
+                <table id="monTable" class="data-table">
+                  <thead><tr><th>代码</th><th>现价</th><th>涨跌%</th><th>RSI</th><th>MACD</th><th>AI信号</th><th>操作建议</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="card-head" style="margin-top:12px"><h3>📜 监控日志</h3></div>
+              <div id="monLog" class="log-box" style="height:180px"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 数据抓取 -->
+        <section id="page-crawl" class="page">
+          <div class="page-head">
+            <div><h2>📥 数据抓取</h2><p class="muted">批量下载历史日K线存 CSV</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>⬇️ 下载历史数据</h3></div>
+              <div class="form">
+                <label class="field"><span>股票代码（逗号分隔）</span><input id="crawlCodes" placeholder="600519,000001,300750" value="600519,000001"></label>
+                <label class="field"><span>开始日期（留空=默认）</span><input id="crawlStart" placeholder="2024-01-01"></label>
+                <label class="field"><span>结束日期（留空=最新）</span><input id="crawlEnd" placeholder="2026-08-06"></label>
+                <button class="btn primary" id="btnCrawl">开始下载</button>
+              </div>
+              <div id="crawlProgress" class="progress-wrap hidden" style="margin-top:10px">
+                <div class="progress-track"><div id="crawlBar" class="progress-fill"></div></div>
+                <span id="crawlMsg" class="progress-msg"></span>
+              </div>
+              <div id="crawlResult" class="muted" style="margin-top:8px"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>🗄️ 已下载文件（<span id="crawlDir"></span>）</h3></div>
+              <button class="btn ghost" id="btnCrawlList">🔄 刷新列表</button>
+              <div class="table-wrap" style="max-height:400px; overflow-y:auto; margin-top:10px">
+                <table id="crawlTable" class="data-table">
+                  <thead><tr><th>文件名</th><th>大小(KB)</th><th>操作</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 全自动交易 -->
+        <!-- 全自动交易 -->
+        <section id="page-trading" class="page">
+          <div class="page-head">
+            <div><h2>🤖 全自动交易</h2><p class="muted">模拟盘练手 或 连接券商客户端真实下单</p></div>
+            <div class="btn-row">
+              <button class="btn ghost" id="btnTradingTest" title="不启动引擎，仅检测券商客户端能否连接">🔌 检测连接</button>
+              <button class="btn primary" id="btnTradingStart">▶️ 启动引擎</button>
+              <button class="btn danger" id="btnTradingStop">⏹️ 停止</button>
+            </div>
+          </div>
+
+          <!-- 新手三步引导 -->
+          <div id="beginnerGuide" class="card guide-card" style="margin-bottom:14px">
+            <div class="card-head"><h3>🧭 三步设置</h3><span class="muted" id="guideStep">步骤 1 / 3</span></div>
+            <div class="form" style="flex-direction:column; align-items:stretch">
+              <div id="guideStep1" class="guide-step">
+                <p><b>第 1 步：选择交易模式</b></p>
+                <p class="muted">新手选「模拟交易」即可——用虚拟资金练习策略，不碰真钱。真实交易需连接券商客户端。</p>
+                <label class="field" style="max-width:300px">
+                  <span>交易模式</span>
+                  <select id="tradingMode" onchange="onTradingModeChange()">
+                    <option value="simulation">模拟交易（推荐新手）</option>
+                    <option value="easytrader">真实交易（券商客户端）</option>
+                  </select>
+                </label>
+              </div>
+              <div id="guideStep2" class="guide-step hidden">
+                <p><b>第 2 步：设定预算金额</b></p>
+                <p class="muted">输入你愿意拿来交易的总金额（元）。A 股 1 手 = 100 股，股价 × 100 = 买 1 手所需最少金额。</p>
+                <label class="field" style="max-width:300px">
+                  <span>总预算（元）</span>
+                  <input id="capital" type="number" value="10000" min="100" step="100">
+                </label>
+                <div id="budgetHint" class="budget-hint hidden"></div>
+              </div>
+              <div id="guideStep3" class="guide-step hidden">
+                <p><b>第 3 步：选择股票</b></p>
+                <p class="muted">用下方按钮导入股票，或点击「智能选股」让系统根据预算自动挑选。</p>
+                <div class="btn-row">
+                  <button class="btn primary sm" id="btnSmartPick">🤖 智能选股</button>
+                  <button class="btn ghost sm" id="btnImportWatch">📥 导入自选</button>
+                  <button class="btn ghost sm" id="btnImportAlloc">📥 导入推荐</button>
+                </div>
+                <p class="muted" id="poolTips">导入或选股后，股票池将显示在这里 ↓</p>
+              </div>
+              <div id="guideDone" class="hidden" style="text-align:center; padding:16px">
+                <p style="font-size:18px">✅ 设置完成！点击「▶️ 启动引擎」开始自动交易。</p>
+              </div>
+            </div>
+          <div id="tradingGuide" class="guide hidden">
+            <h3>实盘下单设置步骤</h3>
+            <ol>
+              <li><b>打开并登录</b>你的券商交易客户端（如"同花顺"，登录资金账号）。</li>
+              <li>找到客户端的<b>下单程序</b>（通常是 xiadan.exe），点「检测连接」或手动填写路径。</li>
+              <li>选择你的<b>券商类型</b>（默认 universal 通用同花顺）。</li>
+              <li>资金账号/密码<b>可留空</b>：客户端已登录时只需附加连接。</li>
+              <li>点「检测连接」确认下单程序可用，再「启动引擎」。</li>
+              <li>启动前需勾选「允许用随机模拟策略实盘下单」。当前自动交易用的是随机模拟策略，仅适合验证下单通道。</li>
+            </ol>
+            <p class="muted">真实下单会动真金白银，建议先用模拟交易熟悉策略。</p>
+          </div>
+
+          </div>
+
+          <!-- 主设置区 -->
+          <div class="grid-2">
+            <div>
+              <div class="card">
+                <div class="card-head"><h3>⚙️ 交易设置</h3></div>
+                <div class="form">
+                  <!-- 券商配置（仅真实交易时显示） -->
+                  <div id="easytraderBox" class="hidden">
+                    <p class="muted" style="margin:4px 0 8px">以下字段用于连接券商客户端，模拟交易可忽略。</p>
+                    <label class="field">
+                      <span>券商类型</span>
+                      <input id="broker" value="universal" placeholder="universal / ths / gj / gf ...">
+                    </label>
+                    <label class="field">
+                      <span>资金账号</span>
+                      <input id="user" placeholder="可留空（连接已登录客户端）">
+                    </label>
+                    <label class="field">
+                      <span>交易密码</span>
+                      <input id="password" type="password" placeholder="可留空">
+                    </label>
+                    <label class="field">
+                      <span>客户端 exe 路径</span>
+                      <input id="exePath" placeholder="C:\同花顺\xiadan.exe">
+                    </label>
+                    <label class="field field-inline">
+                      <input id="allowMock" type="checkbox">
+                      <span>允许随机策略实盘下单（仅测通道，风险极高）</span>
+                    </label>
+                  </div>
+                  <div id="fieldCapital">
+                  <label class="field">
+                    <span>总预算（元）</span>
+                    <input id="capital" type="number" value="100000">
+                  </label>
+                </div>
+
+
+                  <!-- 风控参数 -->
+                  <label class="field">
+                    <span>单只仓位上限（%）</span>
+                    <input id="maxSingle" type="number" value="20">
+                  </label>
+                  <label class="field">
+                    <span>总仓位上限（%）</span>
+                    <input id="maxTotal" type="number" value="80">
+                  </label>
+                  <label class="field">
+                    <span>止损（%）</span>
+                    <input id="stopLoss" type="number" value="5">
+                  </label>
+                  <label class="field">
+                    <span>止盈（%）</span>
+                    <input id="takeProfit" type="number" value="10">
+                  </label>
+                  <label class="field">
+                    <span>每日交易次数上限（0=不限量）</span>
+                    <input id="maxDailyTrades" type="number" value="999999">
+                  </label>
+
+
+                  <!-- 股票池操作 -->
+                  <label class="field">
+                    <span>交易股票池（代码，逗号/换行分隔）</span>
+                    <textarea id="tradingPool" rows="3" placeholder="600519&#10;601318&#10;或用上方按钮导入"></textarea>
+                  </label>
+                  <p class="muted" style="margin:4px 0">股票池由「推荐股票榜」自动导入；手动添加持仓时也会自动加入自选。AI 引擎会参考自选但不绝对按它交易。</p>
+                  <div class="btn-row" style="flex-wrap:wrap">
+                    <button class="btn primary sm" id="btnSmartPick">🤖 AI 智能选股</button>
+                    <button class="btn ghost sm" id="btnClearPool">🗑️ 清空</button>
+                    <button class="btn danger sm" id="btnResetAccount">♻️ 重置模拟账户</button>
+                  </div>
+
+                  <!-- 候选股票选择 -->
+                  <div id="poolPickWrap" class="card hidden" style="margin-top:10px;padding:10px;background:var(--bg2)">
+                    <div class="card-head">
+                      <h3>🔍 候选股票</h3>
+                      <div class="btn-row">
+                        <select id="poolSortSel" class="input" style="padding:5px 8px">
+                          <option value="score">按活跃分</option>
+                          <option value="pct">按涨跌幅</option>
+                          <option value="cost">按1手成本</option>
+                          <option value="price">按现价</option>
+                        </select>
+                        <button class="btn primary sm" id="btnPoolAddChecked">✅ 加入池</button>
+                        <button class="btn ghost sm" id="btnPoolPickClose">✖ 关闭</button>
+                      </div>
+                    </div>
+                    <div class="table-wrap" style="max-height:240px">
+                      <table id="poolPickTable" class="data-table">
+                        <thead><tr>
+                          <th><input type="checkbox" id="poolSelAll" data-selall="poolPickTable" onclick="toggleAll('poolPickTable', this)"></th>
+                          <th>代码</th><th>名称</th><th>现价</th><th>涨跌%</th>
+                          <th>1手成本</th><th>活跃分</th><th>提示</th>
+                        </tr></thead>
+                        <tbody><tr class="empty"><td colspan="8">点击「智能选股」或导入按钮</td></tr></tbody>
+                      </table>
+                    </div>
+                    <p class="muted" id="poolPickSummary" style="margin-top:6px"></p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI 混合策略配置 -->
+              <div class="card" style="margin-top:14px">
+                <div class="card-head">
+                  <h3>🤖 AI 策略配置</h3>
+                  <button class="btn ghost sm" id="btnAiConfigSave">💾 保存配置</button>
+                  <button class="btn ghost sm" id="btnAiConfigLoad">📋 加载配置</button>
+                </div>
+                <div class="form">
+                  <p class="muted" style="margin:4px 0 8px">常态用技术指标决策树快速判断；出现大涨/大跌/放量等异动时，自动调用 AI 做深度分析。</p>
+
+                  <label class="field field-inline">
+                    <input id="aiEnabled" type="checkbox" onchange="toggleAiConfig()">
+                    <span>启用 AI 深度分析（需要 API Key）</span>
+                  </label>
+
+                  <div id="aiConfigFields" class="hidden">
+                    <label class="field">
+                      <span>API Key</span>
+                      <input id="aiApiKey" type="password" placeholder="sk-...（留空则不启用AI）">
+                    </label>
+                    <label class="field">
+                      <span>API 地址</span>
+                      <input id="aiApiUrl" value="https://api.openai.com/v1/chat/completions" placeholder="OpenAI 兼容接口">
+                    </label>
+                    <label class="field">
+                      <span>模型</span>
+                      <select id="aiModel">
+                        <option value="gpt-4o-mini">gpt-4o-mini（推荐，快且便宜）</option>
+                        <option value="gpt-4o">gpt-4o（更强）</option>
+                        <option value="gpt-4-turbo">gpt-4-turbo</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>异动触发阈值（涨跌幅%）</span>
+                      <input id="aiAnomalyThreshold" type="number" value="3" min="1" max="10" step="0.5">
+                    </label>
+                  </div>
+
+                  <div id="aiStatusBox" class="hidden" style="margin-top:8px;padding:8px 12px;border-radius:8px;background:var(--bg2);font-size:13px">
+                    <span id="aiStatusText"></span>
+                  </div>
+                
+
+                  <hr style="border:none;border-top:1px solid var(--line);margin:12px 0">
+                  <label class="field">
+                    <span>最大仓位比例（%，默认 90%）</span>
+                    <input id="maxTotalRatio" type="number" value="90" min="50" max="100" step="5">
+                  </label>
+                  <label class="field field-inline">
+                    <input id="aiMinLot" type="checkbox" checked>
+                    <span>至少交易 1 手（100股）</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右侧：运行状态 -->
+            <div>
+              <div class="card">
+                <div class="card-head"><h3>📊 运行状态</h3></div>
+                <div id="engineStatus" class="engine-status">
+                  <p class="muted">引擎未启动</p>
+                </div>
+                <div class="card-head" style="margin-top:16px"><h3>📜 运行日志</h3></div>
+                <div id="tradingLog" class="log-box"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 收益视图 -->
+          <div class="card" style="margin-top:16px">
+            <div class="card-head">
+              <h3>📈 收益视图</h3>
+              <button class="btn ghost sm" id="btnReturnsRefresh">🔄 刷新</button>
+            </div>
+            <div id="returnsStats" class="stat-row" style="margin-bottom:12px"></div>
+            <div class="chart-wrap" style="border:1px solid var(--line); border-radius:10px; padding:8px">
+              <canvas id="returnsChart" height="220"></canvas>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+              <div>
+                <div class="card-head"><h3>🧮 分股盈亏</h3></div>
+                <div id="returnsStocks" class="muted">加载中...</div>
+              </div>
+              <div>
+                <div class="card-head"><h3>🧾 最近交易</h3></div>
+                <div id="returnsTrades" class="muted">加载中...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- 数据管理 -->
+        <section id="page-storage" class="page">
+          <div class="page-head">
+            <div><h2>📊 数据管理</h2><p class="muted">查看并清理模型 / 股票数据 / 分析报告</p></div>
+            <div class="btn-row">
+              <button class="btn ghost" id="btnOpenData">📂 打开数据目录</button>
+              <button class="btn ghost" id="btnOpenAnalysis">📂 打开分析目录</button>
+              <button class="btn ghost" id="btnRefreshStorage">🔄 刷新</button>
+            </div>
+          </div>
+          <div id="storageSummary" class="engine-status"><p class="muted">加载中...</p></div>
+          <div id="storageCats"></div>
+        </section>
+
+        <!-- 走势分析 -->
+        <section id="page-analysis" class="page">
+          <div class="page-head">
+            <div><h2>📈 走势分析</h2><p class="muted">对已下载的历史数据批量分析，生成 HTML 报告</p></div>
+            <div class="btn-row">
+              <button class="btn ghost" id="btnOpenReport">📄 打开分析报告</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>⚙️ 分析设置</h3></div>
+            <p class="muted" style="margin:8px 0">读取「金融数据」目录下的 CSV 数据文件，计算技术指标并生成可视化报告（AI 分析可选，需本地大模型）。</p>
+            <button class="btn primary" id="btnAnalysisStart">▶️ 开始分析</button>
+            <div id="analysisProgress" class="hidden" style="margin-top:14px">
+              <div class="progress"><div id="analysisBar" class="progress-fill"></div></div>
+              <p class="muted" id="analysisMsg">...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 数据库管理 -->
+        <section id="page-db" class="page">
+          <div class="page-head">
+            <div><h2>🗄️ 数据库管理</h2><p class="muted">MySQL 连接 / 表结构 / CSV 导入导出 / 数据同步</p></div>
+            <div class="btn-row">
+              <button class="btn primary" id="btnDbSync">🔄 同步数据到数据库</button>
+              <button class="btn ghost" id="btnDbRefresh">🔄 刷新</button>
+            </div>
+          </div>
+          <div id="dbSyncBox" class="hidden card" style="margin-bottom:14px">
+            <div class="progress"><div id="dbSyncBar" class="progress-fill"></div></div>
+            <p class="muted" id="dbSyncMsg">...</p>
+            <div id="dbSyncLog" class="log-box" style="height:100px"></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>📡 连接状态</h3></div>
+              <div id="dbStatus" class="muted">加载中...</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>📥 导入 CSV 到数据库</h3></div>
+              <div class="form">
+                <label class="field"><span>选择 金融数据 目录下的 CSV</span><select id="dbCsvSelect"></select></label>
+                <button class="btn primary" id="btnDbImport">导入</button>
+                <p class="muted" id="dbImportMsg"></p>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="card-head"><h3>🗃️ 数据表</h3></div>
+            <div class="table-wrap" style="max-height:280px; overflow-y:auto">
+              <table class="data-table">
+                <thead><tr><th>表名</th><th>记录数</th><th></th><th></th></tr></thead>
+                <tbody id="dbTables"></tbody>
+              </table>
+            </div>
+            <div id="dbDetail"></div>
+          </div>
+        </section>
+
+        <!-- 软件教学 -->
+        <section id="page-help" class="page">
+          <div class="page-head">
+            <div><h2>❓ 软件教学</h2><p class="muted">新手上手指南</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>🚀 推荐上手顺序</h3></div>
+              <ol class="help-list">
+                <li><b>🤖 智能推荐</b> - 先看推荐榜单了解市场机会。</li>
+                <li><b>🔎 智能查询</b> - 输入代码查 K 线、走势、AI 诊断。</li>
+                <li><b>📥 数据抓取</b> - 下载历史日 K 线到「金融数据」目录。</li>
+                <li><b>📈 走势分析</b> - 对已下载数据批量生成分析报告。</li>
+                <li><b>🧪 AI 回测</b> - 用历史数据测试策略收益率。</li>
+                <li><b>👀 盘中监控</b> - 交易时段让 AI 盯盘给信号。</li>
+                <li><b>🤖 全自动交易</b> - 先用「模拟交易」，熟悉后再连券商。</li>
+              </ol>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>📌 常用名词</h3></div>
+              <ul class="help-list">
+                <li><b>RSI</b> 强弱指标，&gt;70 超买、&lt;30 超卖。</li>
+                <li><b>MACD</b> 趋势指标，金叉看多、死叉看空。</li>
+                <li><b>KDJ</b> 随机指标，低位金叉是买点信号。</li>
+                <li><b>K 线</b> 每根记录开高低收与成交量。</li>
+                <li><b>收益率</b> 期末资产相对期初的百分比变化。</li>
+                <li><b>买入持有</b> 同区间不做任何操作只买不卖的基准。</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="card-head"><h3>⚠️ 风险提示</h3></div>
+            <p class="muted">本软件输出仅供学习研究，不构成投资建议。股票市场有风险，投资需谨慎。使用真实交易前请务必充分测试策略。</p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+
+<script>
+// ── 资金门槛计算器（前端实时提示）─────────────────────────────
+(function(){
+  const $ = s => document.querySelector(s);
+  const capInput = $('#capital');
+  const budgetHint = $('#budgetHint');
+  const guideStep1 = $('#guideStep1');
+  const guideStep2 = $('#guideStep2');
+  const guideStep3 = $('#guideStep3');
+  const guideDone  = $('#guideDone');
+  const guideStep  = $('#guideStep');
+
+  let step = 1;
+  function showStep(n) {
+    step = n;
+    guideStep.textContent = '步骤 ' + n + ' / 3';
+    ['guideStep1','guideStep2','guideStep3','guideDone'].forEach((id,i) => {
+      const el = $( '#' + id );
+      if (el) el.classList.toggle('hidden', i+1 !== n);
+    });
+  }
+
+  window.onTradingModeChange = function() {
+    // 切到真实交易时提示风险
+    if ($('#tradingMode').value === 'easytrader') {
+      showToast('⚠️ 真实交易将动真金白银，请先确认理解风险！建议先用模拟盘练习。', 'warn');
+    }
+  };
+
+  // 实时预算提示：输入金额后显示"大概能买几只"
+  if (capInput) {
+    capInput.addEventListener('input', function() {
+      const total = Number(this.value) || 0;
+      if (!budgetHint) return;
+      if (total <= 0) { budgetHint.classList.add('hidden'); return; }
+      budgetHint.classList.remove('hidden');
+      const cheap = 200, mid = 500, expensive = 2000;
+      let tip = '';
+      if (total < cheap) {
+        tip = '⚠️ 金额偏小（< ' + cheap + ' 元）：A 股最少 1 手=100 股，部分低价股 1 手也要几百元。建议至少 ' + (cheap*2) + ' 元以上体验更好。';
+      } else if (total < mid) {
+        tip = '💡 预算 ' + total + ' 元，可买约 ' + Math.floor(total/mid) + ' 只低价股（每只 1 手起）。推荐金额 ≥ ' + mid + ' 元以获得更多选择。';
+      } else {
+        tip = '✅ 预算 ' + total + ' 元，可买约 ' + Math.floor(total/mid) + '～' + Math.floor(total/cheap) + ' 只股票。点击「🤖 智能选股」让系统自动挑选。';
+      }
+      budgetHint.innerHTML = tip;
+      budgetHint.className = 'budget-hint ' + (total < cheap ? 'budget-warn' : 'budget-ok');
+    });
+  }
+
+  // 按钮绑定
+  const btnNext2 = document.createElement('button');
+  btnNext2.className = 'btn primary sm';
+  btnNext2.textContent = '下一步 →';
+  btnNext2.onclick = () => showStep(2);
+
+  const btnNext3 = document.createElement('button');
+  btnNext3.className = 'btn primary sm';
+  btnNext3.textContent = '下一步 →';
+  btnNext3.onclick = () => { showStep(3); };
+
+  const btnDone = document.createElement('button');
+  btnDone.className = 'btn primary sm';
+  btnDone.textContent = '✓ 完成，开始设置';
+  btnDone.onclick = () => { showStep(4); $('#btnSmartPick') && $('#btnSmartPick').click(); };
+
+  // 注入到各步骤末尾
+  const s1 = $('#guideStep1');
+  const s2 = $('#guideStep2');
+  const s3 = $('#guideStep3');
+  if (s1) s1.appendChild(btnNext2);
+  if (s2) s2.appendChild(btnNext3);
+  if (s3) s3.appendChild(btnDone);
+
+  // 首次进入交易页时显示第一步
+  if (guideStep1) guideStep1.classList.remove('hidden');
+})();
+</script>
+
+</body>
+</html>

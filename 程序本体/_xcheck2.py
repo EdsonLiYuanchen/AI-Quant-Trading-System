@@ -1,0 +1,10 @@
+﻿import re, io
+js = io.open("web/app.js", encoding="utf-8").read()
+html = io.open("web/index.html", encoding="utf-8").read()
+html_ids = set(re.findall(r'id="([^"]+)"', html))
+js_ids = set(re.findall(r"""(\$|on)\(\s*['"]#([A-Za-z0-9_\-]+)['"]""", js))
+ids = set(i[1] for i in js_ids)
+missing = sorted(i for i in ids if i not in html_ids)
+print("ids referenced:", len(ids), "| missing:", missing)
+print("leftover unsafe bindings:", len(re.findall(r"\$\('[^']+'\)\.addEventListener", js)))
+print("on() calls:", len(re.findall(r"\bon\('#", js)))

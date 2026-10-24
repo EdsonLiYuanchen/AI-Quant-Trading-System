@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+"""恢复Python文件中的emoji字符"""
+
+import os
+import re
+
+# 反向emoji映射表
+emoji_map = {
+    '[OK]': '[OK]',
+    '[WARN]': '[WARN]',
+    '[INFO]': '[INFO]',
+    '[ERROR]': '[ERROR]',
+    '[NET]': '[NET]',
+    '[RUN]': '[RUN]',
+    '[IDEA]': '[IDEA]',
+    '[UP]': '[UP]',
+    '[STAT]': '[STAT]',
+    '[LIST]': '[LIST]',
+    '[TGT]': '[TGT]',
+    '[SAFE]': '[SAFE]',
+    '[FIND]': '[FIND]',
+    '[MONEY]': '[MONEY]',
+    '[FILE]': '[FILE]',
+    '[SYNC]': '[SYNC]',
+    '[FAST]': '[FAST]',
+    '[PIN]': '[PIN]',
+    '[STAR]': '[STAR]',
+    '[CHART]': '[CHART]',
+    '[ALERT]': '[ALERT]',
+    '[LEARN]': '[LEARN]',
+    '[NOTE]': '[NOTE]',
+    '[HOT]': '[HOT]',
+    '[NEW]': '[NEW]',
+    '[AI]': '[AI]',
+    '[MOBILE]': '[MOBILE]',
+    '[PC]': '[PC]',
+    '[NIGHT]': '[NIGHT]',
+    '[DAY]': '[DAY]',
+    '[COLOR]': '[COLOR]',
+    '[KEY]': '[KEY]',
+    '[LOC]': '[LOC]',
+    '[TIME]': '[TIME]',
+    '[SAVE]': '[SAVE]',
+    '[OUT]': '[OUT]',
+    '[IN]': '[IN]',
+    '[TOOL]': '[TOOL]',
+    '[WORK]': '[WORK]',
+    '[BOT]': '[BOT]',
+    '[BROAD]': '[BROAD]',
+    '[GIFT]': '[GIFT]',
+    '[BOOK]': '[BOOK]',
+    '[MUSIC]': '[MUSIC]',
+    '[VIDEO]': '[VIDEO]',
+    '[CAM]': '[CAM]',
+    '[WAVE]': '[WAVE]',
+    '[CLOCK]': '[CLOCK]',
+    '[TIMER]': '[TIMER]',
+    '[HOME]': '[HOME]',
+    '[OFFICE]': '[OFFICE]',
+    '[PHONE]': '[PHONE]',
+    '[MAIL]': '[MAIL]',
+    '[LINK]': '[LINK]',
+    '[CHAT]': '[CHAT]',
+    '[USER]': '[USER]',
+    '[USERS]': '[USERS]',
+    '[LOCK]': '[LOCK]',
+    '[UNLOCK]': '[UNLOCK]',
+    '[DOWN]': '[DOWN]',
+}
+
+def restore_emojis_in_file(filepath):
+    """恢复单个文件中的emoji字符"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        new_content = content
+        for replacement, emoji in emoji_map.items():
+            new_content = new_content.replace(replacement, emoji)
+        
+        if new_content != content:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            return True
+        return False
+    except Exception as e:
+        print(f"Error processing {filepath}: {e}")
+        return False
+
+# 获取当前目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 处理所有.py文件
+py_files = [f for f in os.listdir(script_dir) if f.endswith('.py')]
+count = 0
+
+for filename in py_files:
+    filepath = os.path.join(script_dir, filename)
+    if restore_emojis_in_file(filepath):
+        print(f"Restored: {filename}")
+        count += 1
+
+print(f"\nDone! Restored {count} files.")
