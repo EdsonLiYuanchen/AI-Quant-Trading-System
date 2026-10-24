@@ -66,14 +66,14 @@ license: MIT
 
 #### 方法一：直接使用可执行文件（推荐）
 
-1. 从 [Releases](https://github.com/Edson-Li/AI-Quant-Trading-System/releases) 下载最新版本的安装包
+1. 从 [Releases](https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System/releases) 下载最新版本的安装包
 2. 解压后双击 `AI_Trading_System.exe` 启动
 
 #### 方法二：从源码运行
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/Edson-Li/AI-Quant-Trading-System.git
+git clone https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System.git
 cd AI-Quant-Trading-System/程序本体
 
 # 2. 安装依赖
@@ -320,6 +320,17 @@ AI_MODELS = {
 
 ---
 
+
+---
+
+## 📦 下载 Release v2.0.0
+
+| 文件 | 大小 | 说明 | 下载 |
+|------|------|------|------|
+| AI_Trading_System_v2.0.0.exe | 31.3 MB | 独立可执行文件，无需安装 | [点击下载](https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System/releases/download/v2.0.0/AI_Trading_System_v2.0.0.exe) |
+| AI_Quant_System_Portable_v2.0.0.zip | 114.4 MB | 便携版，含完整运行环境 | [点击下载](https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System/releases/download/v2.0.0/AI_Quant_System_Portable_v2.0.0.zip) |
+
+---
 ## 📄 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
@@ -328,7 +339,7 @@ AI_MODELS = {
 
 ## 📞 联系方式
 
-- 💬 Issues: [GitHub Issues](https://github.com/Edson-Li/AI-Quant-Trading-System/issues)
+- 💬 Issues: [GitHub Issues](https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System/issues)
 - 📖 文档: [程序本体/README.md](程序本体/README.md)
 
 ---
