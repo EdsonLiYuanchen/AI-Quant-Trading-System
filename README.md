@@ -325,10 +325,26 @@ AI_MODELS = {
 
 ## 📦 下载 Release v2.0.0
 
-| 文件 | 大小 | 说明 | 下载 |
-|------|------|------|------|
-| AI_Trading_System_v2.0.0.exe | 31.3 MB | 独立可执行文件，无需安装 | [点击下载](https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System/releases/download/v2.0.0/AI_Trading_System_v2.0.0.exe) |
-| AI_Quant_System_Portable_v2.0.0.zip | 114.4 MB | 便携版，含完整运行环境 | [点击下载](https://github.com/EdsonLiYuanchen/AI-Quant-Trading-System/releases/download/v2.0.0/AI_Quant_System_Portable_v2.0.0.zip) |
+### 🎁 安装程序（推荐，一步安装）
+
+| 文件 | 大小 | 说明 |
+|------|------|------|
+| AI量化交易系统_安装程序.exe | ~128 MB | 双击运行 → 校验包完整性 → 选择安装目录 → 自动解压并启动程序 |
+
+安装程序用法：
+- 双击运行：交互式引导安装（默认装到当前目录，可改路径）
+- 静默安装：`AI量化交易系统_安装程序.exe /auto /dir=D:/AIQuant`
+- 只解压不启动：`AI量化交易系统_安装程序.exe /extract /dir=D:/AIQuant`
+
+详见 [安装引导.md](安装引导.md)。
+
+### 📦 便携版 zip（手动安装）
+
+| 文件 | 大小 | 说明 |
+|------|------|------|
+| AI量化交易系统_便携版.zip | 114 MB | 解压后双击 `启动.bat` 即可运行 |
+
+> ⚠️ 注意：v2.0.0 发布页上更早上传的单文件 `AI_Trading_System_v2.0.0.exe`（31.3 MB）缺少 `_internal` 依赖目录，**不要使用**；请以本安装程序或便携版 zip 为准。
 
 ---
 ## 📄 许可证

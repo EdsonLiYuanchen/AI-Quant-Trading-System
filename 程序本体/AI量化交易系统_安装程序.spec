@@ -2,15 +2,15 @@
 
 
 a = Analysis(
-    ['_installer_temp\\setup_source\\install.py'],
+    ['AI量化交易系统_安装程序.py'],
     pathex=[],
     binaries=[],
-    datas=[('_internal', '.'), ('install.py', '.'), ('uninstall.ps1', '.')],
-    hiddenimports=['tkinter', 'tkinter.ttk', 'tkinter.filedialog'],
+    datas=[('AI量化交易系统_便携版.zip', 'portable')],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['win32com'],
+    excludes=[],
     noarchive=False,
     optimize=0,
 )
@@ -29,7 +29,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

@@ -41,3 +41,16 @@ dist_test_v2/
 _verify_extract/
 releases/
 program.log
+# 安装程序构建用的本地便携包副本（嵌入进 安装程序.exe，不单独入库）
+程序本体/AI量化交易系统_便携版.zip
+程序本体/build/
+程序本体/_insttest/
+程序本体/insttest_out.txt
+程序本体/_runinst.bat
+程序本体/_itest.py
+# 安装程序 exe 太大（~128MB）不放 git，改用 GitHub Release 附件分发
+程序本体/dist/
+程序本体/build_installer.log
+程序本体/*.spec
+程序本体/installer_source/
+程序本体/dist_test_v2/
