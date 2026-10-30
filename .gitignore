@@ -54,3 +54,48 @@ program.log
 程序本体/*.spec
 程序本体/installer_source/
 程序本体/dist_test_v2/
+
+# pip 安装日志和版本标记文件
+程序本体/[0-9]*.*
+程序本体/%out%.done
+
+# akshare 数据文件和临时 JS
+程序本体/akshare/data/crypto_info.zip
+程序本体/akshare/data/cninfo.js
+程序本体/akshare/data/ths.js
+程序本体/akshare/air/crypto.js
+程序本体/akshare/air/outcrypto.js
+程序本体/akshare/movie/jm.js
+程序本体/akshare/stock_feature/ths.js
+
+# _browsercheck 临时目录
+程序本体/_browsercheck/
+
+# webview JS 库（node_modules 已忽略，但保留 src）
+程序本体/webview/js/lib/
+
+# 数据缓存（运行时生成）
+程序本体/data_cache/
+
+# 数据导出 CSV
+程序本体/板块成分股_*.csv
+
+# android build/test 脚本（只保留 App 源码）
+程序本体/android/app/src/main/python/build_*.py
+程序本体/android/app/src/main/python/check_*.py
+程序本体/android/app/src/main/python/test_*.py
+程序本体/android/app/src/main/python/launcher_test.py
+程序本体/android/app/src/main/python/run_*.py
+程序本体/android/app/src/main/python/untitled-*.py
+程序本体/android/app/src/main/python/fix_*.py
+程序本体/android/app/src/main/python/restore_*.py
+程序本体/android/app/src/main/python/cleanup.py
+程序本体/android/app/src/main/python/clean_and_build.py
+
+# PyInstaller 构建日志
+程序本体/pyinstaller*.txt
+程序本体/build_log.txt
+程序本体/test*_out.txt
+程序本体/test*_err.txt
+程序本体/test_err.txt
+程序本体/test_out.txt
